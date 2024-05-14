@@ -24,7 +24,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/serviceWorker.js').then((registration) => {
     console.log('Service Worker registered');
 
-    // 確保 Service Worker 已經控制頁面
     if (navigator.serviceWorker.controller) {
       console.log('Service Worker is controlling the page');
     } else {
@@ -72,14 +71,28 @@ document.getElementById('useWebLock').addEventListener('click', () => {
   navigator.locks.request('my_resource', { mode: 'exclusive', ifAvailable: true }, async (lock) => {
     if (!lock) {
       displayMessage('Web Lock not available');
+      channel.postMessage('Web Lock not available');
       return;
     }
     displayMessage('Web Lock acquired');
+    channel.postMessage('Web Lock acquired');
     // Simulate a task that takes some time
     await new Promise(resolve => setTimeout(resolve, 3000));
     displayMessage('Web Lock released');
+    channel.postMessage('Web Lock released');
   });
 });
+
+// Listen for Web Lock status changes
+channel.onmessage = (event) => {
+  if (event.data === 'Web Lock not available') {
+    displayMessage('Web Lock is currently held by another tab');
+  } else if (event.data === 'Web Lock acquired') {
+    displayMessage('Web Lock has been acquired by another tab');
+  } else if (event.data === 'Web Lock released') {
+    displayMessage('Web Lock has been released by another tab');
+  }
+};
 
 // Clear message list
 document.getElementById('clearMessages').addEventListener('click', () => {
