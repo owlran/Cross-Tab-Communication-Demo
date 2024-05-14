@@ -18,7 +18,7 @@ const broadcastChannel = new BroadcastChannel('crossTabChannel');
 
 document.getElementById('sendBroadcastChannel').addEventListener('click', () => {
   const message = document.getElementById('message').value;
-  broadcastChannel.postMessage(message);
+  broadcastChannel.postMessage({ source: 'app', message });
 });
 
 if ('serviceWorker' in navigator) {
@@ -63,7 +63,9 @@ window.addEventListener('storage', (event) => {
 
 // Listen for BroadcastChannel messages
 broadcastChannel.onmessage = (event) => {
-  displayMessage(`BroadcastChannel: ${event.data}`);
+  if (event.data && event.data.source === 'app') {
+    displayMessage(`BroadcastChannel: ${event.data.message}`);
+  }
 };
 
 // Web Locks API demo
@@ -71,30 +73,54 @@ document.getElementById('useWebLock').addEventListener('click', () => {
   navigator.locks.request('my_resource', { mode: 'exclusive', ifAvailable: true }, async (lock) => {
     if (!lock) {
       displayMessage('Web Lock not available');
-      broadcastChannel.postMessage('Web Lock not available');
+      broadcastChannel.postMessage({ source: 'app', message: 'Web Lock not available' });
       return;
     }
     displayMessage('Web Lock acquired');
-    broadcastChannel.postMessage('Web Lock acquired');
+    broadcastChannel.postMessage({ source: 'app', message: 'Web Lock acquired' });
     // Simulate a task that takes some time
     await new Promise(resolve => setTimeout(resolve, 3000));
     displayMessage('Web Lock released');
-    broadcastChannel.postMessage('Web Lock released');
+    broadcastChannel.postMessage({ source: 'app', message: 'Web Lock released' });
   });
 });
 
 // Listen for Web Lock status changes
 broadcastChannel.onmessage = (event) => {
-  if (event.data === 'Web Lock not available') {
-    displayMessage('Web Lock is currently held by another tab');
-  } else if (event.data === 'Web Lock acquired') {
-    displayMessage('Web Lock has been acquired by another tab');
-  } else if (event.data === 'Web Lock released') {
-    displayMessage('Web Lock has been released by another tab');
-  } else {
-    displayMessage(`BroadcastChannel: ${event.data}`);
+  if (event.data && event.data.source === 'app') {
+    if (event.data.message === 'Web Lock not available') {
+      displayMessage('Web Lock is currently held by another tab');
+    } else if (event.data.message === 'Web Lock acquired') {
+      displayMessage('Web Lock has been acquired by another tab');
+    } else if (event.data.message === 'Web Lock released') {
+      displayMessage('Web Lock has been released by another tab');
+    } else {
+      displayMessage(`BroadcastChannel: ${event.data.message}`);
+    }
   }
 };
+
+// Window.postMessage demo
+let newTab = null;
+document.getElementById('openNewTab').addEventListener('click', () => {
+  newTab = window.open(window.location.href, '_blank');
+});
+
+document.getElementById('sendPostMessage').addEventListener('click', () => {
+  const message = document.getElementById('message').value;
+  if (newTab) {
+    newTab.postMessage({ source: 'app', message }, '*');
+    displayMessage('send message to new tab');
+  } else {
+    displayMessage('No new tab opened to send the message.');
+  }
+});
+
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.source === 'app') {
+    displayMessage(`Window.postMessage: ${event.data.message}`);
+  }
+});
 
 // Clear message list
 document.getElementById('clearMessages').addEventListener('click', () => {
