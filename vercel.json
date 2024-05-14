@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/demo-overlay", "dest": "/index_demo.html" }
+  ]
+}
