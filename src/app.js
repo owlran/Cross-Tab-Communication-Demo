@@ -1,5 +1,22 @@
 import "./style.css";
-import { sendMessage as sendLocalStorageMessage } from "./localStorage";
+import {
+  sendMessage as sendLocalStorageMessage,
+  setupLocalStorageListener,
+} from "./localStorage";
+import {
+  sendMessage as sendBroadcastChannelMessage,
+  setupBroadcastChannelListener,
+} from "./broadcastChannel";
+import {
+  registerServiceWorker,
+  sendServiceWorkerMessage,
+} from "./serviceWorker";
+import { setupWebLock, setupWebLockListener } from "./webLock";
+import {
+  openNewTab,
+  sendPostMessage,
+  setupPostMessageListener,
+} from "./postMessage";
 
 const messageList = document.getElementById("messageList");
 
@@ -14,130 +31,35 @@ document.getElementById("sendLocalStorage").addEventListener("click", () => {
   sendLocalStorageMessage(message);
 });
 
-const broadcastChannel = new BroadcastChannel("crossTabChannel");
-
 document
   .getElementById("sendBroadcastChannel")
   .addEventListener("click", () => {
     const message = document.getElementById("message").value;
-    broadcastChannel.postMessage({ source: "app", message });
+    sendBroadcastChannelMessage(message);
   });
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/serviceWorker.js").then((registration) => {
-    console.log("Service Worker registered");
+registerServiceWorker(displayMessage);
 
-    if (navigator.serviceWorker.controller) {
-      console.log("Service Worker is controlling the page");
-    } else {
-      console.log("Service Worker is not controlling the page");
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        console.log("Service Worker now controlling the page");
-      });
-    }
-  });
-
-  navigator.serviceWorker.addEventListener("message", (event) => {
-    displayMessage(`Service Worker: ${event.data}`);
-  });
-
-  function sendServiceWorkerMessage(message) {
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage(message);
-    } else {
-      console.log("Service Worker not ready to receive messages");
-    }
-  }
-
-  document.getElementById("sendServiceWorker").addEventListener("click", () => {
-    const message = document.getElementById("message").value;
-    sendServiceWorkerMessage(message);
-  });
-}
-
-// Listen for localStorage messages
-window.addEventListener("storage", (event) => {
-  if (event.key === "crossTabMessage") {
-    const { message } = JSON.parse(event.newValue);
-    displayMessage(`LocalStorage: ${message}`);
-  }
+document.getElementById("sendServiceWorker").addEventListener("click", () => {
+  const message = document.getElementById("message").value;
+  sendServiceWorkerMessage(message);
 });
 
-// Listen for BroadcastChannel messages
-broadcastChannel.onmessage = (event) => {
-  if (event.data && event.data.source === "app") {
-    displayMessage(`BroadcastChannel: ${event.data.message}`);
-  }
-};
+setupLocalStorageListener(displayMessage);
+setupBroadcastChannelListener(displayMessage);
 
-// Web Locks API demo
-document.getElementById("useWebLock").addEventListener("click", () => {
-  navigator.locks.request(
-    "my_resource",
-    { mode: "exclusive", ifAvailable: true },
-    async (lock) => {
-      if (!lock) {
-        displayMessage("Web Lock not available");
-        broadcastChannel.postMessage({
-          source: "app",
-          message: "Web Lock not available",
-        });
-        return;
-      }
-      displayMessage("Web Lock acquired");
-      broadcastChannel.postMessage({
-        source: "app",
-        message: "Web Lock acquired",
-      });
-      // Simulate a task that takes some time
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      displayMessage("Web Lock released");
-      broadcastChannel.postMessage({
-        source: "app",
-        message: "Web Lock released",
-      });
-    }
-  );
-});
+setupWebLock(displayMessage);
+setupWebLockListener(displayMessage);
 
-// Listen for Web Lock status changes
-broadcastChannel.onmessage = (event) => {
-  if (event.data && event.data.source === "app") {
-    if (event.data.message === "Web Lock not available") {
-      displayMessage("Web Lock is currently held by another tab");
-    } else if (event.data.message === "Web Lock acquired") {
-      displayMessage("Web Lock has been acquired by another tab");
-    } else if (event.data.message === "Web Lock released") {
-      displayMessage("Web Lock has been released by another tab");
-    } else {
-      displayMessage(`BroadcastChannel: ${event.data.message}`);
-    }
-  }
-};
-
-// Window.postMessage demo
-let newTab = null;
-document.getElementById("openNewTab").addEventListener("click", () => {
-  newTab = window.open(window.location.href, "_blank");
-});
+document.getElementById("openNewTab").addEventListener("click", openNewTab);
 
 document.getElementById("sendPostMessage").addEventListener("click", () => {
   const message = document.getElementById("message").value;
-  if (newTab) {
-    newTab.postMessage({ source: "app", message }, "*");
-    displayMessage("send message to new tab");
-  } else {
-    displayMessage("No new tab opened to send the message.");
-  }
+  sendPostMessage(message, displayMessage);
 });
 
-window.addEventListener("message", (event) => {
-  if (event.data && event.data.source === "app") {
-    displayMessage(`Window.postMessage: ${event.data.message}`);
-  }
-});
+setupPostMessageListener(displayMessage);
 
-// Clear message list
 document.getElementById("clearMessages").addEventListener("click", () => {
   messageList.innerHTML = "";
 });

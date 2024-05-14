@@ -1,14 +1,15 @@
-// broadcastChannel.js
-
 const channel = new BroadcastChannel('crossTabChannel');
 
 function sendMessage(message) {
-  channel.postMessage(message);
+  channel.postMessage({ source: 'app', message });
 }
 
-channel.onmessage = (event) => {
-  console.log('Received message via BroadcastChannel:', event.data);
-  // 在這裡處理接收到的消息
-};
+function setupBroadcastChannelListener(displayMessage) {
+  channel.onmessage = (event) => {
+    if (event.data && event.data.source === 'app') {
+      displayMessage(`BroadcastChannel: ${event.data.message}`);
+    }
+  };
+}
 
-export { sendMessage };
+export { sendMessage, setupBroadcastChannelListener, channel };
