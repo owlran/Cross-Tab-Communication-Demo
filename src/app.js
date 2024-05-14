@@ -21,8 +21,18 @@ document.getElementById('sendBroadcastChannel').addEventListener('click', () => 
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/serviceWorker.js').then(() => {
+  navigator.serviceWorker.register('/serviceWorker.js').then((registration) => {
     console.log('Service Worker registered');
+
+    // 確保 Service Worker 已經控制頁面
+    if (navigator.serviceWorker.controller) {
+      console.log('Service Worker is controlling the page');
+    } else {
+      console.log('Service Worker is not controlling the page');
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Service Worker now controlling the page');
+      });
+    }
   });
 
   navigator.serviceWorker.addEventListener('message', (event) => {
@@ -30,7 +40,11 @@ if ('serviceWorker' in navigator) {
   });
 
   function sendServiceWorkerMessage(message) {
-    navigator.serviceWorker.controller.postMessage(message);
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage(message);
+    } else {
+      console.log('Service Worker not ready to receive messages');
+    }
   }
 
   document.getElementById('sendServiceWorker').addEventListener('click', () => {
