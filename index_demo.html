@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-Tab Detection Demo</title>
+  <link rel="stylesheet" href="/src/demo.css">
+</head>
+<body>
+  <div class="container">
+    <input type="text" id="message" placeholder="Enter your message">
+    <div class="buttons">
+      <button id="sendLocalStorage">Send via LocalStorage</button>
+      <button id="sendBroadcastChannel">Send via BroadcastChannel</button>
+      <button id="sendServiceWorker">Send via ServiceWorker</button>
+      <button id="useWebLock">Use Web Lock</button>
+      <button id="sendPostMessage">Send via postMessage</button>
+      <button id="openNewTab">Open New Tab</button>
+      <button id="clearMessages">Clear Messages</button>
+    </div>
+    <div id="receivedMessages">
+      <h2>Received Messages:</h2>
+      <ul id="messageList"></ul>
+    </div>
+  </div>
+  <div id="overlay" class="overlay">
+    <div class="overlay-content">
+      <p>Another tab has been opened. Please refresh the page.</p>
+      <button id="refreshPage">Refresh</button>
+    </div>
+  </div>
+  <script type="module" src="/src/demo.js"></script>
+</body>
+</html>

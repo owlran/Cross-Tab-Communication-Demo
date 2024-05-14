@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cross-Tab Communication Demo</title>
-</head>
-<body>
-  <div class="container">
-    <input type="text" id="message" placeholder="Enter your message">
-    <div class="buttons">
-      <button id="sendLocalStorage">Send via LocalStorage</button>
-      <button id="sendBroadcastChannel">Send via BroadcastChannel</button>
-      <button id="sendServiceWorker">Send via ServiceWorker</button>
-      <button id="useWebLock">Use Web Lock</button>
-      <button id="sendPostMessage">Send via postMessage</button>
-      <button id="openNewTab">Open New Tab</button>
-      <button id="clearMessages">Clear Messages</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cross-Tab Communication Demo</title>
+  </head>
+  <body>
+    <div class="container">
+      <input type="text" id="message" placeholder="Enter your message" />
+      <div class="buttons">
+        <button id="sendLocalStorage">Send via LocalStorage</button>
+        <button id="sendBroadcastChannel">Send via BroadcastChannel</button>
+        <button id="sendServiceWorker">Send via ServiceWorker</button>
+        <button id="useWebLock">Use Web Lock</button>
+        <button id="sendPostMessage">Send via postMessage</button>
+        <button id="openNewTab">Open New Tab</button>
+        <button id="clearMessages">Clear Messages</button>
+      </div>
+      <div id="receivedMessages">
+        <h2>Received Messages:</h2>
+        <ul id="messageList"></ul>
+      </div>
     </div>
-  </div>
-  <div id="receivedMessages">
-    <h2>Received Messages:</h2>
-    <ul id="messageList"></ul>
-  </div>
-  <script type="module" src="/src/app.js"></script>
-</body>
+    <script type="module" src="/src/app.js"></script>
+  </body>
 </html>
