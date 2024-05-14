@@ -38,6 +38,10 @@ if ('serviceWorker' in navigator) {
     displayMessage(`Service Worker: ${event.data}`);
   });
 
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    displayMessage(`Service Worker: ${event.data}`);
+  });
+
   function sendServiceWorkerMessage(message) {
     if (navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage(message);
