@@ -1,6 +1,5 @@
 import './style.css';
 import { sendMessage as sendLocalStorageMessage } from './localStorage';
-import { sendMessage as sendBroadcastChannelMessage } from './broadcastChannel';
 
 const messageList = document.getElementById('messageList');
 
@@ -15,9 +14,11 @@ document.getElementById('sendLocalStorage').addEventListener('click', () => {
   sendLocalStorageMessage(message);
 });
 
+const broadcastChannel = new BroadcastChannel('crossTabChannel');
+
 document.getElementById('sendBroadcastChannel').addEventListener('click', () => {
   const message = document.getElementById('message').value;
-  sendBroadcastChannelMessage(message);
+  broadcastChannel.postMessage(message);
 });
 
 if ('serviceWorker' in navigator) {
@@ -32,10 +33,6 @@ if ('serviceWorker' in navigator) {
         console.log('Service Worker now controlling the page');
       });
     }
-  });
-
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    displayMessage(`Service Worker: ${event.data}`);
   });
 
   navigator.serviceWorker.addEventListener('message', (event) => {
@@ -65,8 +62,7 @@ window.addEventListener('storage', (event) => {
 });
 
 // Listen for BroadcastChannel messages
-const channel = new BroadcastChannel('crossTabChannel');
-channel.onmessage = (event) => {
+broadcastChannel.onmessage = (event) => {
   displayMessage(`BroadcastChannel: ${event.data}`);
 };
 
@@ -75,26 +71,28 @@ document.getElementById('useWebLock').addEventListener('click', () => {
   navigator.locks.request('my_resource', { mode: 'exclusive', ifAvailable: true }, async (lock) => {
     if (!lock) {
       displayMessage('Web Lock not available');
-      channel.postMessage('Web Lock not available');
+      broadcastChannel.postMessage('Web Lock not available');
       return;
     }
     displayMessage('Web Lock acquired');
-    channel.postMessage('Web Lock acquired');
+    broadcastChannel.postMessage('Web Lock acquired');
     // Simulate a task that takes some time
     await new Promise(resolve => setTimeout(resolve, 3000));
     displayMessage('Web Lock released');
-    channel.postMessage('Web Lock released');
+    broadcastChannel.postMessage('Web Lock released');
   });
 });
 
 // Listen for Web Lock status changes
-channel.onmessage = (event) => {
+broadcastChannel.onmessage = (event) => {
   if (event.data === 'Web Lock not available') {
     displayMessage('Web Lock is currently held by another tab');
   } else if (event.data === 'Web Lock acquired') {
     displayMessage('Web Lock has been acquired by another tab');
   } else if (event.data === 'Web Lock released') {
     displayMessage('Web Lock has been released by another tab');
+  } else {
+    displayMessage(`BroadcastChannel: ${event.data}`);
   }
 };
 
